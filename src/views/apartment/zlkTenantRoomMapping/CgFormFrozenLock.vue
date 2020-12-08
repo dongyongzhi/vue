@@ -1,0 +1,107 @@
+
+<template>
+  <div :class="mobile || height==0 ? 'cg-form':'cg-form just-v-scroll'" :style="mobile || height==0?'':'height:'+height+'px'">
+    <el-form ref="cgForm" v-loading="recordLoading" :model="record" v-cg-form-adjust
+                          :class="className" :rules="rules" 
+             :label-position="labelPosition" :label-width="labelWidth" :size="$store.state.app.size" 
+             hide-required-asterisk >
+      <el-row :gutter="mobile?0:20">
+        <el-col :span="12">
+          <el-form-item class="cg-item-select cg-auto-focus" :label="$t('zlkTenantRoomMapping.field.frozenUserType')" prop="frozenUserType" :size="$store.state.app.size" >
+            <cg-select v-model="record.frozenUserType" name="frozenUserType"
+                       :dictionary="dictionary.dictFrozenUserType" :readonly="isDetail" :filterable="false" :allow-create="false" :placeholder="$t('system.message.needValue')" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item class="cg-item-select" :label="$t('zlkTenantRoomMapping.field.frozenType')" prop="frozenType" :size="$store.state.app.size" >
+            <cg-select v-model="record.frozenType" name="frozenType"
+                       :dictionary="dictionary.dictFrozenType" :readonly="isDetail" :filterable="false" :allow-create="false" :placeholder="$t('system.message.needValue')" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </el-form>
+    <div v-if="!isDetail" class="cg-form-buttons">
+      <el-divider />
+      <el-button-group v-for = "(btn,index) in addtionalActions" :key="btn.action" style="margin-right:5px">
+        <el-button v-if="hasAuthorityOf(myself,baseUrl,btn,record)" :class="'cg-button'+''+(btn.appendClass?' '+btn.appendClass:'')"
+                   type="default" plain :icon="btn.icon" :disabled="hasOwnProperty('disabledAction') ? disabledAction(btn) : false"
+                   @click.native="doAction(btn.action)" >
+        {{ $t('zlkTenantRoomMapping.action.'+btn.action) }}
+        </el-button>
+      </el-button-group>
+      <el-button v-if="hasAuthorityOf(myself,baseUrl,'edit',record)" class="cg-button" type="primary" plain :disabled="!recordChanged"
+                 icon="el-icon-check" @click.native="submit()">
+        {{ $t('system.action.save') }}
+      </el-button>
+      <el-button v-if="!mobile && showInDialog" class="cg-button" plain icon="el-icon-close"
+                 @click.native="$emit('closeDialog')">
+        {{ $t('system.action.close') }}
+      </el-button>
+    </div>
+  </div>
+</template>
+<script>
+import cgForm from '@/utils/cgForm'
+import rulesObject from './rules.js'
+import ParentForm from '@/views/common-views/components/form'
+const Comp = {
+  name: 'CgFormFrozenLock',
+  mixins: [ParentForm],
+  props: {
+    routeParams: {
+      type: Object,
+      default: null
+    }
+  },
+  data() {
+    return {
+      defaultLabelPosition: 'top',
+      rulesObject,
+      isDialogForm: true,
+      path: 'frozen',
+      idField: 'id',
+      idSaved: this.openParams().record && typeof this.openParams().record === 'object' ? this.openParams().record.id : null,
+      dictionary: {
+        dictFrozenUserType: [],
+        dictFrozenType: []
+      },
+      needLoadDictionary: true,
+      generatorName: 'zlkTenantRoomMapping',
+      baseUrl: '/apartment/zlkTenantRoomMapping'
+    }
+  },
+  computed: {
+    addtionalActions() {
+      return [
+        {
+          action: 'frozen',
+          icon: 'fa fa-hand-o-up',
+          title: 'zlkTenantRoomMapping.action.frozen',
+          groupid: 10,
+          confirm: '',
+          rowProperty: 'nr',
+          displayProperties: 'ed',
+          actionProperty: 'pg',
+          appendClass: '',
+          needRefresh: false
+        },
+      ]
+    },
+  },
+  methods: {
+    newRecord: function() {
+        return {
+            token: false,
+            frozenUserType: '0',
+            frozenType: '0',
+        }
+    },
+  }
+}
+const mixins = [Comp]
+const mixinContext = require.context('.', false, /CgFormFrozenLock-mixin\.(js|vue)$/)
+mixinContext.keys().forEach(key => { mixins.push(mixinContext(key).default) })
+export default mixins.length < 2 ? Comp : {
+    mixins
+}
+</script>
